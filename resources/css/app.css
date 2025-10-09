@@ -1,0 +1,148 @@
+/* ========================================================= */
+/* 1. Base Styles & Typography */
+/* ========================================================= */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base body styles for smooth typography and transitions */
+body {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    background-color: #f8fafc; /* Tailwind gray-50 */
+    color: #1f2937; /* Tailwind gray-800 */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode styles */
+.dark body {
+    background-color: #111827; /* Tailwind gray-900 */
+    color: #f3f4f6; /* Tailwind gray-100 */
+}
+
+/* ========================================================= */
+/* 2. Custom Components (Card & Animation) */
+/* ========================================================= */
+
+.card {
+    background-color: white; /* Default light mode background */
+    border-radius: 1.25rem; /* rounded-2xl */
+    padding: 1.5rem; /* p-6 */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-xl */
+}
+
+.card:hover {
+    transform: translateY(-4px) scale(1.01); /* Subtle lift and scale for micro-interaction */
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.08); /* shadow-2xl equivalent */
+}
+
+/* Dark mode styles for the custom card */
+.dark .card {
+    background-color: #1f2937; /* gray-800 */
+    box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.05), 0 4px 6px -2px rgba(255, 255, 255, 0.02);
+}
+
+.dark .card:hover {
+    box-shadow: 0 20px 25px -5px rgba(255, 255, 255, 0.1), 0 10px 10px -5px rgba(255, 255, 255, 0.04);
+}
+
+/* ========================================================= */
+/* 3. Animations */
+/* ========================================================= */
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-up {
+    opacity: 0;
+    animation: slideUp 0.6s ease-out forwards;
+}
+
+/* Delay classes to stagger the animation for a smoother effect */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+
+/* ========================================================= */
+/* 4. Utility Classes for the Provided Blade Code */
+/* ========================================================= */
+
+/* Note: In a modern setup, Tailwind generates these automatically,
+ * but they are included here for a full, standalone CSS file. */
+
+.container {
+    max-width: 1280px; /* Equivalent of Tailwind's max-w-7xl */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.text-3xl {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.text-foreground {
+    color: #1f2937; /* gray-800 equivalent for a simple "foreground" text */
+}
+
+.dark .text-foreground {
+    color: #f3f4f6; /* gray-100 */
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.grid {
+    display: grid;
+}
+
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.md\:grid-cols-3 {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.gap-6 {
+    gap: 1.5rem;
+}
