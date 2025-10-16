@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 class WorkerController extends Controller
 {
     /**
-     * Create a new controller instance.
+     * Require authentication.
      */
     public function __construct()
     {
@@ -20,21 +20,20 @@ class WorkerController extends Controller
     }
 
     /**
-     * Display a listing of the workers.
+     * Display a listing of all workers for the admin's company.
      */
     public function index()
     {
-        Log::info('Accessing workers index for user ID: ' . (auth()->check() ? auth()->id() : 'not authenticated'));
+        $user = auth()->user();
+        $company = $user->company;
 
-        $company = auth()->user()->company ?? null;
-        $workers = $company ? User::where('company_id', $company->id)->get() : collect();
-
-        if ($workers->isEmpty() && $company) {
-            return view('workers.index', compact('workers'))
-                ->with('message', 'No workers found for your company.');
+        if (!$company) {
+            return redirect()->route('company.required')->with('error', 'You are not assigned to a company.');
         }
 
-        return view('workers.index', compact('workers'));
+        $workers = User::where('company_id', $company->id)->get();
+
+        return view('workers.index', compact('workers', 'company'));
     }
 
     /**
@@ -44,26 +43,25 @@ class WorkerController extends Controller
     {
         $user = auth()->user();
 
-        Log::info('User ID ' . $user->id . ' with role ' . ($user->role ?? 'null') . ' attempting to access workers/create');
+        if (!$user->isAdmin()) {
+            return redirect()->route('dashboard')->with('error', 'You do not have permission to create workers.');
+        }
 
         $company = $user->company;
 
+        // Automatically create a company if admin has none
         if (!$company) {
-            $company = Company::firstOrCreate(
-                ['name' => 'Default Company'],
-                ['country' => 'Latvia']
-            );
+            $company = Company::create([
+                'name' => $user->name . "'s Company",
+                'country' => 'Latvia',
+            ]);
 
-            $user->company_id = $company->id;
-            $user->role = 'admin';
-            $user->save();
+            $user->update([
+                'company_id' => $company->id,
+                'role' => 'admin',
+            ]);
 
-            Log::info('Created new company ID ' . $company->id . ' and set user ID ' . $user->id . ' as admin');
-        }
-
-        if (method_exists($user, 'isAdmin') && !$user->isAdmin()) {
-            Log::warning('Non-admin user ID ' . $user->id . ' attempted to access workers/create');
-            return redirect()->route('dashboard')->with('error', 'You do not have permission to create workers.');
+            Log::info("Created company ID {$company->id} for admin user ID {$user->id}");
         }
 
         return view('workers.create-worker', compact('company'));
@@ -76,14 +74,11 @@ class WorkerController extends Controller
     {
         $user = auth()->user();
 
-        Log::info('User ID ' . $user->id . ' with role ' . ($user->role ?? 'null') . ' attempting to create worker');
-
-        if (method_exists($user, 'isAdmin') && !$user->isAdmin()) {
-            Log::warning('Non-admin user ID ' . $user->id . ' attempted to create a worker');
+        if (!$user->isAdmin()) {
             return redirect()->route('dashboard')->with('error', 'You do not have permission to create workers.');
         }
 
-        $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'surname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -91,21 +86,30 @@ class WorkerController extends Controller
         ]);
 
         $company = $user->company;
+
+        // If the admin somehow has no company, create one automatically
         if (!$company) {
-            Log::warning('No company found for user ID ' . $user->id . ' during worker creation.');
-            return redirect()->back()->with('error', 'Unable to create worker due to missing company.');
+            $company = Company::create([
+                'name' => $user->name . "'s Company",
+                'country' => 'Latvia',
+            ]);
+            $user->update(['company_id' => $company->id]);
         }
 
+        // Create the worker and assign them to the same company
         $worker = User::create([
-            'name' => $request->name . ' ' . $request->surname,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'surname' => $validated['surname'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
             'company_id' => $company->id,
             'role' => 'user',
         ]);
 
-        Log::info('Created worker ID ' . $worker->id . ' for company ID ' . $company->id);
+        Log::info("Worker ID {$worker->id} created for company ID {$company->id} by admin ID {$user->id}");
 
-        return redirect()->route('workers.create')->with('success', 'Worker created successfully.');
+        return redirect()
+            ->route('workers.index')
+            ->with('success', 'Worker created successfully and linked to your company.');
     }
 }

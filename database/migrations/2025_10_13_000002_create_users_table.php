@@ -6,22 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('surname')->nullable(); // Pievienots uzvārds
+            $table->string('surname')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->unsignedBigInteger('company_id')->nullable(); // Saistība ar uzņēmumu
-            $table->string('role')->default('user'); // Pievienota lomu kolonna ar noklusējumu 'user'
+            $table->unsignedBigInteger('company_id')->nullable();
+            $table->string('role')->default('user');
             $table->rememberToken();
             $table->timestamps();
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('set null');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -40,9 +38,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('users');

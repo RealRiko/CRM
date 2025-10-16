@@ -7,87 +7,85 @@
     {{-- Using Tailwind CDN for guaranteed styling in the Canvas preview. --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Ensuring a modern, clean font is used */
+        /* Ensuring a clean, modern font is used */
         body {
             font-family: 'Inter', sans-serif;
         }
 
-        /* --- 2025 Aesthetic: Layered Gradient Background (Copied from welcome.blade.php) --- */
-        .neon-background {
-            background-color: #0c0d12; /* Deep dark base */
+        /* --- Refined Soft Light Aesthetic: Muted Background & Subtle Card Depth --- */
+        .unique-background {
+            /* Muted background for contrast with white card */
+            background-color: #f9f6f3; 
             overflow: hidden;
             position: relative;
         }
+
+        /* Enhanced Card Shadow (Soft lift, not too harsh) */
+        .card-shadow {
+            box-shadow: 
+                0 20px 50px rgba(0, 0, 0, 0.1), /* Main soft shadow */
+                0 0 0 1px rgba(0, 0, 0, 0.05) inset; /* Subtle inner ring for definition */
+        }
         
-        /* Neon effect 1 (Top Left - Indigo) */
-        .neon-background::before {
+:root {
+    --sienna: #CA8A04; /* globally define sienna */
+}
+
+.color-sienna {
+    color: var(--sienna);
+}
+
+.bg-sienna {
+    background-color: var(--sienna) !important;
+}
+
+.hover\:bg-sienna-dark:hover {
+    background-color: #A06F03 !important;
+}
+
+.focus\:ring-sienna:focus {
+    --tw-ring-color: #CA8A04 !important;
+}
+
+
+        /* Subtle vertical stripe from previous version for uniqueness */
+        .unique-background::before {
             content: '';
-            position: absolute;
-            top: -10%;
-            left: -10%;
-            width: 50vw;
-            height: 50vw;
-            background: rgba(49, 46, 129, 0.4); /* indigo-700/40 */
-            filter: blur(200px);
-            border-radius: 50%;
-            pointer-events: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 16px; /* Slightly wider stripe */
+            background-color: #f3eee8; /* Lighter accent beige */
             z-index: 0;
-            animation: move-gradient-1 15s infinite alternate ease-in-out;
-        }
-
-        /* Neon effect 2 (Bottom Right - Purple/Pink) */
-        .neon-background::after {
-            content: '';
-            position: absolute;
-            bottom: -10%;
-            right: -10%;
-            width: 40vw;
-            height: 40vw;
-            background: rgba(168, 85, 247, 0.3); /* violet-500/30 */
-            filter: blur(200px);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            animation: move-gradient-2 20s infinite alternate-reverse ease-in-out;
-        }
-
-        @keyframes move-gradient-1 {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(20vw, 20vh) scale(1.1); }
-        }
-
-        @keyframes move-gradient-2 {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(-15vw, -15vh) scale(1.2); }
         }
     </style>
 </head>
-<body class="neon-background">
+<body class="unique-background">
     <div class="min-h-screen flex items-center justify-center p-4 relative z-10">
-        {{-- Main Centered Card - Glassmorphism Effect --}}
-        <div class="
-            max-w-md w-full 
-            bg-gray-900/60 p-8 sm:p-10 rounded-3xl 
-            shadow-2xl backdrop-blur-xl 
-            border border-white/10 ring-2 ring-indigo-500/20 
-            transition duration-500 hover:ring-indigo-500/40
-        ">
+        {{-- Main Centered Card - Clean, Elevated Design --}}
+   <div class="
+    max-w-md w-full 
+    bg-white card-shadow p-10 sm:p-12 rounded-3xl 
+    transition duration-300 hover:shadow-2xl
+">
+
 
             <div class="mb-8 text-center">
+                {{-- Text Gradient for unique title --}}
                 <h2 class="
-                    text-4xl font-black mb-1
+                    text-4xl font-extrabold mb-1
                     bg-clip-text text-transparent 
-                    bg-gradient-to-r from-indigo-300 via-white to-indigo-400 
-                    drop-shadow-lg
+                    bg-gradient-to-r from-gray-800 to-amber-700
                 ">
-                    Sign In
+                    Welcome Back
                 </h2>
-                <p class="text-gray-400">Access your next-gen workspace.</p>
+                <p class="text-gray-500">Access your professional dashboard.</p>
             </div>
             
             {{-- Session Status --}}
             @if (session('status'))
-                <div class="p-3 mb-4 text-sm text-green-300 bg-green-900/50 rounded-lg" role="alert">
+                <div class="p-3 mb-4 text-sm text-amber-800 bg-amber-100 rounded-xl border border-amber-200" role="alert">
                     {{ session('status') }}
                 </div>
             @endif
@@ -95,15 +93,14 @@
             <form method="POST" action="{{ route('login') }}" class="space-y-6">
                 @csrf
 
-                <!-- Email Address -->
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
                     <input id="email" 
                         class="
-                            block w-full p-3 rounded-lg border-none
-                            bg-gray-800/80 text-white placeholder-gray-500 shadow-md
-                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition duration-150
-                            @error('email') ring-2 ring-red-500 @enderror
+                            block w-full p-4 rounded-xl border border-gray-300
+                            bg-gray-50 text-gray-800 placeholder-gray-400 shadow-inner
+                            focus:border-sienna focus:ring-2 focus:ring-sienna/30 transition duration-150
+                            @error('email') ring-2 ring-red-500 border-red-500 @enderror
                         " 
                         type="email" 
                         name="email" 
@@ -112,20 +109,19 @@
                         autocomplete="username" 
                     />
                     @error('email')
-                        <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Password -->
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
 
                     <input id="password" 
                         class="
-                            block w-full p-3 rounded-lg border-none
-                            bg-gray-800/80 text-white placeholder-gray-500 shadow-md
-                            focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 transition duration-150
-                            @error('password') ring-2 ring-red-500 @enderror
+                            block w-full p-4 rounded-xl border border-gray-300
+                            bg-gray-50 text-gray-800 placeholder-gray-400 shadow-inner
+                            focus:border-sienna focus:ring-2 focus:ring-sienna/30 transition duration-150
+                            @error('password') ring-2 ring-red-500 border-red-500 @enderror
                         "
                         type="password"
                         name="password"
@@ -134,47 +130,54 @@
                     />
 
                     @error('password')
-                        <p class="mt-2 text-sm text-red-400">{{ $message }}</p>
+                        <p class="mt-2 text-sm text-red-600 font-medium">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Remember Me -->
                 <div class="flex justify-between items-center pt-2">
                     <label for="remember_me" class="inline-flex items-center">
                         <input id="remember_me" type="checkbox" 
                             class="
-                                h-5 w-5 rounded border-gray-600 bg-gray-700/80 text-indigo-500 shadow-sm 
-                                focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-gray-900 
+                                h-5 w-5 rounded-md border-gray-300 color-sienna bg-white shadow-sm 
+                                focus:ring-sienna focus:ring-offset-2 focus:ring-offset-white
                                 transition duration-150
                             " 
                             name="remember"
                         >
-                        <span class="ms-3 text-sm text-gray-300">{{ __('Remember me') }}</span>
+                        <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
                     </label>
-                </div>
-
-                <div class="flex flex-col space-y-4 pt-4">
                     
-                    {{-- Log In Button (Primary Heroic Style) --}}
-                    <button type="submit" class="
-                        w-full px-4 py-3 text-lg font-bold 
-                        rounded-xl shadow-xl shadow-indigo-500/50 
-                        text-white bg-indigo-600 hover:bg-indigo-700 
-                        transition duration-300 ease-in-out transform hover:scale-[1.01]
-                        focus:outline-none focus:ring-4 focus:ring-indigo-400 focus:ring-opacity-80
-                    ">
-                        {{ __('Log in') }} &rarr;
-                    </button>
-
-                    {{-- Forgot Password Link --}}
                     @if (Route::has('password.request'))
                         <a class="
-                            text-sm text-indigo-400 hover:text-indigo-300 font-medium 
-                            transition duration-150 text-center
+                            text-sm color-sienna hover:text-amber-800 font-medium 
+                            transition duration-150
                         " href="{{ route('password.request') }}">
-                            {{ __('Forgot your password?') }}
+                            {{ __('Forgot password?') }}
                         </a>
                     @endif
+                </div>
+
+                <div class="flex flex-col space-y-4 pt-6">
+                    
+                    {{-- Log In Button (PRIMARY ACTION: Solid Sienna background applied here) --}}
+                    <button type="submit" class="
+                        w-full px-4 py-4 text-xl font-bold 
+                        rounded-xl shadow-lg shadow-amber-600/30 
+                        text-white bg-sienna hover:bg-sienna-dark 
+                        transition duration-300 ease-in-out transform hover:scale-[1.01]
+                        focus:outline-none focus:ring-4 focus:ring-sienna/50
+                        flex items-center justify-center
+                    ">
+                        {{ __('Sign In') }}
+                    </button>
+
+                    {{-- Sign Up Link --}}
+                    <p class="text-sm text-center text-gray-500 mt-4">
+                        New user? 
+                        <a href="{{ route('register') }}" class="color-sienna hover:text-amber-800 font-bold transition duration-150">
+                            Create an Account
+                        </a>
+                    </p>
                 </div>
             </form>
         </div>

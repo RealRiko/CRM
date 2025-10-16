@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Client;
-use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule; // Import Rule for unique validation
 
 class ClientController extends Controller
 {
@@ -22,20 +22,23 @@ class ClientController extends Controller
      */
     public function index()
     {
-        Log::info('ClientController@index accessed by user ID: ' . auth()->id());
+        $user = auth()->user();
+        Log::info('ClientController@index accessed by user ID: ' . $user->id);
 
-        $company = auth()->user()->company;
+        $company = $user->company;
 
         if (!$company) {
-            Log::warning('User ID ' . auth()->id() . ' attempted to access clients without an assigned company.');
-            return redirect()->route('dashboard')->with('error', 'No company assigned.');
+            Log::warning('User ID ' . $user->id . ' attempted to access clients without a company.');
+            return redirect()->route('company.required')->with('error', 'You must belong to a company.');
         }
 
         $clients = Client::query()
             ->where('company_id', $company->id)
             ->when(request('search'), function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%");
+                $query->where(function ($subQuery) use ($search) {
+                    $subQuery->where('name', 'like', "%{$search}%")
+                             ->orWhere('email', 'like', "%{$search}%");
+                });
             })
             ->latest()
             ->get();
@@ -48,13 +51,15 @@ class ClientController extends Controller
      */
     public function create()
     {
-        $company = auth()->user()->company;
+        $user = auth()->user();
+        $company = $user->company;
 
-        if (!$company || !auth()->user()->isAdmin()) {
-            Log::warning('Unauthorized access to client creation by user ID ' . auth()->id());
-            return redirect()->route('dashboard')->with('error', 'Permission denied.');
+        if (!$company) {
+            Log::warning('User ID ' . $user->id . ' tried to access clients.create without company.');
+            return redirect()->route('company.required')->with('error', 'Please create or join a company first.');
         }
 
+        // ✅ Allow all users in the same company to create clients
         return view('clients.create', compact('company'));
     }
 
@@ -63,19 +68,21 @@ class ClientController extends Controller
      */
     public function store(Request $request)
     {
-        Log::info('ClientController@store called by user ID: ' . auth()->id(), $request->all());
+        $user = auth()->user();
+        $company = $user->company;
 
-        $company = auth()->user()->company;
+        Log::info('ClientController@store called by user ID: ' . $user->id);
 
-        if (!$company || !auth()->user()->isAdmin()) {
-            Log::warning('Unauthorized attempt to store a client by user ID ' . auth()->id());
-            return redirect()->route('dashboard')->with('error', 'Permission denied.');
+        if (!$company) {
+            Log::warning('User ID ' . $user->id . ' tried to store a client without company.');
+            return redirect()->route('company.required')->with('error', 'Please join or create a company first.');
         }
 
         $validated = $request->validate([
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'unique:clients,email'],
             'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:255'],
         ]);
 
         $validated['company_id'] = $company->id;
@@ -85,8 +92,54 @@ class ClientController extends Controller
         Log::info('Client created successfully', [
             'client_id' => $client->id,
             'company_id' => $company->id,
+            'user_id' => $user->id,
         ]);
 
         return redirect()->route('clients.index')->with('success', 'Client created successfully.');
+    }
+
+    /**
+     * Show the form for editing the specified client.
+     */
+    public function edit(Client $client)
+    {
+        $this->authorizeClientAccess($client);
+
+        return view('clients.edit', compact('client'));
+    }
+
+    /**
+     * Update the specified client in the database.
+     */
+    public function update(Request $request, Client $client)
+    {
+        $this->authorizeClientAccess($client);
+        
+        $validated = $request->validate([
+            'name'  => ['required', 'string', 'max:255'],
+            // Ensures the email is unique *except* for the current client's email
+            'email' => ['required', 'email', Rule::unique('clients', 'email')->ignore($client->id)],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'address' => ['nullable', 'string', 'max:255'],
+        ]);
+        
+        $client->update($validated);
+
+        return redirect()->route('clients.index')->with('success', 'Client updated successfully.');
+    }
+
+    /**
+     * Helper function to ensure the user has access to the client.
+     * Checks if the client belongs to the user's company.
+     */
+    protected function authorizeClientAccess(Client $client)
+    {
+        $user = auth()->user();
+        
+        if (!$user->company || $client->company_id !== $user->company->id) {
+            Log::error("User {$user->id} attempted unauthorized access to client {$client->id}");
+            // Use abort(403) or throw an AuthorizationException in a real app
+            abort(403, 'Unauthorized action.');
+        }
     }
 }

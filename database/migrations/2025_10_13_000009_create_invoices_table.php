@@ -10,11 +10,13 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('company_id')->nullable();
+            $table->foreignId('customer_id')->constrained('customers')->onDelete('cascade');
             $table->decimal('total_amount', 10, 2);
             $table->string('status')->default('pending');
             $table->json('items');
             $table->timestamps();
+            $table->foreign('company_id')->references('id')->on('companies')->onDelete('set null');
         });
     }
 

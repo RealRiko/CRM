@@ -31,10 +31,16 @@ export default {
           light: '#ffffff',
           dark: '#1f1f1f',
         },
+        // === SIENNA AMBER THEME COLOR ADDED HERE ===
+        sienna: {
+          DEFAULT: '#CA8A04', // Sienna Amber: Primary color
+          dark: '#A16207',    // Darker shade for hover states
+          light: '#FDE68A',   // Lightest shade for backgrounds (e.g., hover:bg-sienna-light/50)
+        }
+        // ==========================================
       },
     },
   },
 
   plugins: [forms, typography],
 }
-

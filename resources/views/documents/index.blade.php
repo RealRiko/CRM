@@ -3,6 +3,16 @@
 @section('title', 'Documents - ' . config('app.name', 'Inventory Management'))
 
 @section('content')
+    {{-- Custom Amber Color (Sienna Amber: #CA8A04) --}}
+    <style>
+        .text-amber-sienna { color: #CA8A04; }
+        .border-amber-sienna { border-color: #CA8A04; }
+        .bg-amber-sienna { background-color: #CA8A04; }
+        .hover\:bg-amber-sienna-dark:hover { background-color: #A16207; /* A slightly darker shade for hover */ }
+        .focus\:ring-amber-sienna:focus { --tw-ring-color: #CA8A04; }
+        .focus\:border-amber-sienna:focus { border-color: #CA8A04; }
+    </style>
+
     {{-- Main Page Container --}}
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-10">
         
@@ -10,13 +20,14 @@
         <div class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700">
             
             {{-- Header and Create Button --}}
-<header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
-            <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
-                     Documents List
+            <header class="mb-8 flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+                <h1 class="text-3xl font-extrabold text-gray-900 dark:text-gray-100 mb-4 sm:mb-0">
+                    Documents List
                 </h1>
+                {{-- BUTTON: CHANGED FROM INDIGO TO AMBER --}}
                 <a href="{{ route('documents.create') }}"
                     class="
-                        bg-indigo-600 hover:bg-indigo-700 text-white font-semibold 
+                        bg-amber-sienna hover:bg-amber-sienna-dark text-white font-semibold 
                         py-2 px-4 rounded-xl shadow-lg 
                         transition duration-300 ease-in-out transform hover:scale-[1.02]
                         text-sm sm:text-base
@@ -43,7 +54,8 @@
                     class="
                         w-full p-3 pl-10 border border-gray-300 dark:border-gray-600 
                         rounded-xl shadow-inner dark:bg-gray-700 dark:text-gray-100
-                        focus:ring-indigo-500 focus:border-indigo-500 transition duration-150
+                        {{-- FOCUS RING: CHANGED FROM INDIGO TO AMBER --}}
+                        focus:ring-2 focus:ring-amber-sienna focus:border-amber-sienna transition duration-150
                     "
                     value="{{ request('search') }}" onkeyup="this.form.submit()">
                 {{-- Search Icon --}}
@@ -68,7 +80,7 @@
                         </thead>
                         <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach ($documents as $document)
-                                <tr class="hover:bg-indigo-50/50 dark:hover:bg-gray-700 transition duration-200 text-gray-900 dark:text-gray-200">
+                                <tr class="hover:bg-amber-50/50 dark:hover:bg-gray-700 transition duration-200 text-gray-900 dark:text-gray-200">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">{{ ucfirst($document->type) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm">{{ $document->client->name ?? 'N/A' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $document->delivery_days }} days</td>
@@ -86,8 +98,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">{{ $document->created_at->format('Y-m-d') }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-center text-sm space-x-2">
+                                        {{-- EDIT LINK: CHANGED FROM INDIGO TO AMBER --}}
                                         <a href="{{ route('documents.edit', $document) }}" class="
-                                            text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 dark:hover:text-indigo-300
+                                            text-amber-sienna hover:text-amber-sienna-dark
                                             font-semibold transition duration-150
                                         ">Edit</a>
                                         <span class="text-gray-400 dark:text-gray-600">|</span>

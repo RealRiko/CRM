@@ -9,12 +9,14 @@ class Company extends Model
 {
     use HasFactory;
 
-
     protected $fillable = [
         'name',
         'country',
-        'created_at', 
-        'updated_at',
+        'monthly_goal',
     ];
 
+    public function users()
+    {
+        return $this->hasMany(User::class, 'company_id');
+    }
 }
