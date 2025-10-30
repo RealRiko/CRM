@@ -33,75 +33,56 @@ class RegisteredUserController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
      */
-    public function store(Request $request): JsonResponse|RedirectResponse
-    {
-        // 1. Validation (Laravel automatically handles 422 JSON responses if expectsJson() is true)
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'surname' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'country' => ['required', 'string', 'max:100'],
-            'company_name' => ['required', 'string', 'max:255'],
+public function store(Request $request): RedirectResponse
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'surname' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'country' => ['required', 'string', 'max:100'],
+        'company_name' => ['required', 'string', 'max:255'],
+    ]);
+
+    DB::beginTransaction();
+
+    try {
+        // 1. Create company
+        $company = Company::create([
+            'name' => $request->company_name,
+            'country' => $request->country,
         ]);
 
-        DB::beginTransaction();
+        // 2. Create user with "admin" role
+        $user = User::create([
+            'name' => $request->name,
+            'surname' => $request->surname,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'company_id' => $company->id,
+            'role' => 'admin', // everyone is admin
+        ]);
 
-        try {
-            // Determine role: first user = admin, others = user
-            $role = User::count() === 0 ? 'admin' : 'user';
+        DB::commit();
 
-            // 2. Create company
-            $company = Company::create([
-                'name' => $request->company_name,
-                'country' => $request->country,
-            ]);
+        event(new Registered($user));
 
-            // 3. Create user
-            $user = User::create([
-                'name' => $request->name,
-                'surname' => $request->surname,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-                'company_id' => $company->id,
-                'role' => $role,
-            ]);
+        // Auto-login and redirect to dashboard
+        Auth::login($user);
 
-            DB::commit();
+        return redirect()->route('dashboard');
 
-            event(new Registered($user));
-            Auth::login($user);
+    } catch (\Throwable $e) {
+        DB::rollBack();
 
-            // 4. JSON or redirect response
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Registration successful.',
-                    'redirect' => RouteServiceProvider::HOME,
-                ], 201);
-            }
+        Log::error('Registration failed.', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
 
-            return redirect(RouteServiceProvider::HOME);
-
-        } catch (\Throwable $e) {
-            DB::rollBack();
-
-            Log::error('Registration failed.', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
-
-            // 5. JSON error response
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'Registration failed due to a server error. Please contact support.',
-                    'error_details' => config('app.debug') ? $e->getMessage() : null,
-                ], 500);
-            }
-
-            // Fallback for form submission
-            return back()
-                ->withInput()
-                ->withErrors(['email' => 'Registration failed due to a server error. Please contact support.']);
-        }
+        return back()
+            ->withInput()
+            ->withErrors(['email' => 'Registration failed due to a server error. Please contact support.']);
     }
+}
 }

@@ -11,17 +11,11 @@ use Illuminate\Support\Facades\Log;
 
 class WorkerController extends Controller
 {
-    /**
-     * Require authentication.
-     */
     public function __construct()
     {
         $this->middleware('auth');
     }
 
-    /**
-     * Display a listing of all workers for the admin's company.
-     */
     public function index()
     {
         $user = auth()->user();
@@ -36,9 +30,6 @@ class WorkerController extends Controller
         return view('workers.index', compact('workers', 'company'));
     }
 
-    /**
-     * Show the form for creating a new worker.
-     */
     public function create()
     {
         $user = auth()->user();
@@ -49,7 +40,6 @@ class WorkerController extends Controller
 
         $company = $user->company;
 
-        // Automatically create a company if admin has none
         if (!$company) {
             $company = Company::create([
                 'name' => $user->name . "'s Company",
@@ -67,9 +57,6 @@ class WorkerController extends Controller
         return view('workers.create-worker', compact('company'));
     }
 
-    /**
-     * Store a newly created worker in storage.
-     */
     public function store(Request $request)
     {
         $user = auth()->user();
@@ -87,7 +74,6 @@ class WorkerController extends Controller
 
         $company = $user->company;
 
-        // If the admin somehow has no company, create one automatically
         if (!$company) {
             $company = Company::create([
                 'name' => $user->name . "'s Company",
@@ -96,7 +82,6 @@ class WorkerController extends Controller
             $user->update(['company_id' => $company->id]);
         }
 
-        // Create the worker and assign them to the same company
         $worker = User::create([
             'name' => $validated['name'],
             'surname' => $validated['surname'],
@@ -111,5 +96,78 @@ class WorkerController extends Controller
         return redirect()
             ->route('workers.index')
             ->with('success', 'Worker created successfully and linked to your company.');
+    }
+
+    // ----------------- EDIT/UPDATE -----------------
+    public function edit(User $worker)
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() || $worker->company_id !== $user->company_id) {
+            return redirect()->route('workers.index')->with('error', 'You do not have permission to edit this worker.');
+        }
+
+        return view('workers.edit-worker', compact('worker'));
+    }
+
+    public function update(Request $request, User $worker)
+    {
+        $user = auth()->user();
+
+        if (!$user->isAdmin() || $worker->company_id !== $user->company_id) {
+            return redirect()->route('workers.index')->with('error', 'You do not have permission to update this worker.');
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'surname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', "unique:users,email,{$worker->id}"],
+            'password' => ['nullable', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        $worker->name = $validated['name'];
+        $worker->surname = $validated['surname'];
+        $worker->email = $validated['email'];
+
+        if (!empty($validated['password'])) {
+            $worker->password = Hash::make($validated['password']);
+        }
+
+        $worker->save();
+
+        Log::info("Worker ID {$worker->id} updated by admin ID {$user->id}");
+
+        return redirect()
+            ->route('workers.index')
+            ->with('success', 'Worker updated successfully.');
+    }
+
+    // ----------------- DESTROY -----------------
+    public function destroy(User $worker)
+    {
+        $user = auth()->user();
+
+        // Check if user is admin
+        if (!$user->isAdmin()) {
+            return redirect()->route('workers.index')->with('error', 'You do not have permission to delete workers.');
+        }
+
+        // Check if worker belongs to the same company
+        if ($worker->company_id !== $user->company_id) {
+            return redirect()->route('workers.index')->with('error', 'You do not have permission to delete this worker.');
+        }
+
+        // Prevent deleting yourself
+        if ($user->id === $worker->id) {
+            return redirect()->route('workers.index')->with('error', 'You cannot delete your own account.');
+        }
+
+        Log::info("Worker ID {$worker->id} deleted by admin ID {$user->id}");
+
+        $worker->delete();
+
+        return redirect()
+            ->route('workers.index')
+            ->with('success', 'Worker deleted successfully.');
     }
 }

@@ -12,7 +12,6 @@
             font-family: 'Inter', sans-serif;
         }
 
-        /* --- Soft Gradient Background with Subtle Motion --- */
         .soft-gradient-bg {
             background: linear-gradient(135deg, #f8f5f2 0%, #f3ede7 100%);
             min-height: 100vh;
@@ -49,7 +48,6 @@
             100% { transform: translateY(20px); }
         }
 
-        /* Accent Color */
         :root {
             --sienna: #CA8A04;
         }
@@ -72,11 +70,11 @@
 
         <!-- Title -->
         <h1 class="text-5xl sm:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-amber-700 via-amber-500 to-yellow-400 drop-shadow-sm">
-            CRM<span class="text-gray-800"> Test</span>
+            CHAMANAGE<span class="text-gray-800"> </span>
         </h1>
 
         <p class="text-gray-600 text-lg sm:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-            Manage clients, inventory, and projects with clarity and confidence.  
+            Manage clients, inventory, with clarity and confidence.  
             Built for professionals who value design and efficiency.
         </p>
 

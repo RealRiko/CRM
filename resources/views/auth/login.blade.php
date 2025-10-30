@@ -7,28 +7,24 @@
     {{-- Using Tailwind CDN for guaranteed styling in the Canvas preview. --}}
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Ensuring a clean, modern font is used */
         body {
             font-family: 'Inter', sans-serif;
         }
 
-        /* --- Refined Soft Light Aesthetic: Muted Background & Subtle Card Depth --- */
         .unique-background {
-            /* Muted background for contrast with white card */
             background-color: #f9f6f3; 
             overflow: hidden;
             position: relative;
         }
 
-        /* Enhanced Card Shadow (Soft lift, not too harsh) */
         .card-shadow {
             box-shadow: 
-                0 20px 50px rgba(0, 0, 0, 0.1), /* Main soft shadow */
-                0 0 0 1px rgba(0, 0, 0, 0.05) inset; /* Subtle inner ring for definition */
+                0 20px 50px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(0, 0, 0, 0.05) inset; 
         }
         
 :root {
-    --sienna: #CA8A04; /* globally define sienna */
+    --sienna: #CA8A04;
 }
 
 .color-sienna {
@@ -48,15 +44,14 @@
 }
 
 
-        /* Subtle vertical stripe from previous version for uniqueness */
         .unique-background::before {
             content: '';
             position: fixed;
             top: 0;
             left: 0;
             height: 100vh;
-            width: 16px; /* Slightly wider stripe */
-            background-color: #f3eee8; /* Lighter accent beige */
+            width: 16px;
+            background-color: #f3eee8;
             z-index: 0;
         }
     </style>

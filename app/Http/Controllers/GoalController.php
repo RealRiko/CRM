@@ -3,69 +3,101 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Company; // Import the Company model
+use Illuminate\Support\Facades\Storage;
 
 class GoalController extends Controller
 {
     /**
-     * GoalController constructor.
-     * The middleware is now typically handled in the routes file.
+     * Show combined goal, company, and document settings.
      */
-    public function __construct()
-    {
-        // Removed explicit middleware setup as per previous context
-    }
-
-    /**
-     * Displays the goal setting view.
-     */
-    public function goalView()
+    public function companySettingsView()
     {
         $user = auth()->user();
-
-        // Assuming user must have a company relationship
         $company = $user->company;
 
         if (!$company) {
-            // Redirect to dashboard if company relationship is missing
-            return redirect()->route('dashboard')->with('error', 'No company assigned to your user account.');
+            return redirect()->route('company.required')->with('error', 'Please create your company first.');
         }
 
-        // The goal setting form view
-        return view('dashboard.goal', compact('company'));
+        return view('admin.company_settings', compact('company'));
     }
 
     /**
-     * Handles the submission to set or update the monthly revenue goal.
+     * Save monthly goal.
      */
     public function setGoal(Request $request)
     {
-        $user = auth()->user();
-        
-        // **FIX 1: Get the Company model directly by ID**
-        // We bypass the potentially cached user relationship ($user->company) 
-        // and fetch the Company object directly from the database using its ID.
-        $company = Company::find($user->company_id);
-
-        // Ensure company exists before proceeding
-        if (!$company) {
-             return redirect()->route('dashboard')->with('error', 'Cannot update goal: No company assigned.');
-        }
-
-        // Validate the incoming request data
         $validated = $request->validate([
-            'monthly_goal' => 'required|numeric|min:0|max:999999999.99', // Added a reasonable max value
+            'monthly_goal' => 'required|numeric|min:0',
         ]);
 
-        // Update the goal in the database
+        $company = auth()->user()->company;
         $company->update(['monthly_goal' => $validated['monthly_goal']]);
 
-        // **FIX 2: Force complete user refresh in the session**
-        // This is the most robust way to ensure the authenticated session 
-        // object is up-to-date for the redirect request.
-        auth()->setUser($user->fresh());
+        return back()->with('success', 'Monthly goal updated successfully.');
+    }
 
-        // FIX: Redirects back to the main 'dashboard' route to display the updated goal diagram.
-        return redirect()->route('dashboard')->with('success', 'Monthly revenue goal updated successfully.');
+    /**
+     * Update company details & logo.
+     */
+    public function updateCompanyDetails(Request $request)
+    {
+        $company = auth()->user()->company;
+
+        $validated = $request->validate([
+            'company_name' => 'required|string|max:255',
+            'reg_number' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:255',
+            'city' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:20',
+            'bank_name' => 'nullable|string|max:100',
+            'account_number' => 'nullable|string|max:50',
+            'vat_number' => 'nullable|string|max:50',
+            'footer_contacts' => 'nullable|string|max:500',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        $updateData = [
+            'name' => $validated['company_name'],
+            'registration_number' => $validated['reg_number'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'city' => $validated['city'] ?? null,
+            'postal_code' => $validated['postal_code'] ?? null,
+            'bank_name' => $validated['bank_name'] ?? null,
+            'account_number' => $validated['account_number'] ?? null,
+            'vat_number' => $validated['vat_number'] ?? null,
+            'footer_contacts' => $validated['footer_contacts'] ?? null,
+        ];
+
+        if ($request->hasFile('logo')) {
+            if ($company->logo_path) {
+                Storage::disk('public')->delete($company->logo_path);
+            }
+            $updateData['logo_path'] = $request->file('logo')->store('logos', 'public');
+        }
+
+        $company->update($updateData);
+
+        return back()->with('success', 'Company details updated successfully.');
+    }
+
+    /**
+     * Update document settings.
+     */
+    public function updateDocumentSettings(Request $request)
+    {
+        $company = auth()->user()->company;
+
+        $validated = $request->validate([
+            'invoice_prefix' => 'nullable|string|max:10',
+            'estimate_prefix' => 'nullable|string|max:10',
+        ]);
+
+        $company->update([
+            'invoice_prefix' => $validated['invoice_prefix'] ?? 'INV-',
+            'estimate_prefix' => $validated['estimate_prefix'] ?? 'EST-',
+        ]);
+
+        return back()->with('success', 'Document settings updated successfully.');
     }
 }

@@ -78,23 +78,6 @@
             @enderror
         </div>
 
-        {{-- Stock Field --}}
-        <div>
-            <label for="stock" class="block text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">Stock Quantity</label>
-            <input type="number" name="stock" id="stock" 
-                class="
-                    w-full p-3 border border-gray-300 dark:border-gray-600 
-                    rounded-xl shadow-inner dark:bg-gray-700 dark:text-gray-100
-                    focus:ring-amber-sienna focus:border-amber-sienna transition duration-150
-                    @error('stock') border-red-500 @enderror
-                " 
-                value="{{ old('stock', $product->stock ?? 0) }}" 
-                min="0">
-            @error('stock')
-                <p class="mt-2 text-sm text-red-500 dark:text-red-400">{{ $message }}</p>
-            @enderror
-        </div>
-
         {{-- Category Field --}}
         <div>
             <label for="category" class="block text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">Category</label>

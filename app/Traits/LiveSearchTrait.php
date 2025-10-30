@@ -3,23 +3,24 @@
 namespace App\Traits;
 
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 trait LiveSearchTrait
 {
     /**
-     * Handles live search requests for a given model.
+     * Perform a live search for any model
      *
      * @param Request $request
-     * @param string $modelClass The full class name of the Eloquent model (e.g., App\Models\Client::class).
+     * @param string $modelClass Fully qualified model class (e.g., App\Models\Client)
+     * @param array $searchFields Fields to search in (e.g., ['name', 'email'])
      * @return JsonResponse
      */
-    protected function performLiveSearch(Request $request, string $modelClass): JsonResponse
+    protected function performLiveSearch(Request $request, string $modelClass, array $searchFields = ['name'])
     {
-        $search = $request->query('query');
+        $search = trim($request->query('query', ''));
         $company = Auth::user()->company;
 
         if (!$search || !$company) {
@@ -28,29 +29,26 @@ trait LiveSearchTrait
 
         /** @var Model $model */
         $model = new $modelClass();
-        
-        $results = $model::query()
+
+        $query = $model::query()
             ->where('company_id', $company->id)
-            ->where(function (Builder $query) use ($search) {
-                // Check if the model has a 'name' field
-                if (method_exists($model, 'hasNamedField') && $model->hasNamedField('name')) {
-                    $query->where('name', 'like', "%{$search}%");
-                }
-                
-                // Add more specific fields for common models
-                if ($model instanceof \App\Models\Client) {
-                    $query->orWhere('email', 'like', "%{$search}%");
-                }
-                
-                // Add other generic fields if they exist
-                if (method_exists($model, 'hasNamedField') && $model->hasNamedField('category')) {
-                    $query->orWhere('category', 'like', "%{$search}%");
+            ->where(function ($q) use ($search, $searchFields) {
+                foreach ($searchFields as $field) {
+                    $q->orWhere($field, 'like', "%{$search}%");
                 }
             })
-            // Select only necessary fields for faster API response
-            ->limit(10)
-            ->get();
+            ->select('*', DB::raw("
+                CASE
+                    WHEN name = '{$search}' THEN 100
+                    WHEN name LIKE '{$search}%' THEN 90
+                    WHEN name LIKE '%{$search}%' THEN 80
+                    ELSE 0
+                END AS relevance
+            "))
+            ->orderByDesc('relevance')
+            ->limit(10);
 
-        return response()->json($results);
+        return response()->json($query->get());
     }
 }
+

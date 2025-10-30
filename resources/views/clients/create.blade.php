@@ -3,8 +3,7 @@
 @section('title', 'Create Client - ' . config('app.name', 'Inventory Management'))
 
 @section('content')
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {{-- Includes the reusable form partial. Since no $client is passed, it defaults to 'Create' mode. --}}
-        @include('clients._client_form')
-    </div>
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    @include('clients._client_form')
+</div>
 @endsection

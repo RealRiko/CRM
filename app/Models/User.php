@@ -28,15 +28,25 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-public function company()
-{
-    return $this->belongsTo(Company::class, 'company_id', 'id');
-}
+    /**
+     * ✅ Relationship: user belongs to one company
+     */
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'company_id');
+    }
+
+    /**
+     * ✅ Relationship: a company admin can have many employees (users)
+     */
     public function employees()
     {
         return $this->hasMany(User::class, 'company_id');
     }
 
+    /**
+     * ✅ Check if the user is an admin
+     */
     public function isAdmin()
     {
         return $this->role === 'admin';

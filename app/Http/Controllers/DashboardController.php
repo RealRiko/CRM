@@ -20,10 +20,6 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
 
-        // **CRITICAL FIX for Goal Updates**
-        // We use fresh() to get the latest User model state from the database.
-        // Then, we use load('company') to ensure the company relationship on 
-        // that fresh user model is also re-fetched from the database.
         $user = $user->fresh(); 
         $user->load('company');
 
@@ -36,10 +32,7 @@ class DashboardController extends Controller
 
         $now = now();
         $companyId = $company->id;
-        
-        // ==========================================================
-        // 1. Efficient Revenue Calculation (6 Months)
-        // ==========================================================
+
         $startDate = $now->copy()->subMonths(5)->startOfMonth();
         $months = collect(range(5, 0))->map(fn($i) => $now->copy()->subMonths($i)->format('F'));
 
@@ -76,7 +69,6 @@ class DashboardController extends Controller
         // Goal progress
         // This line now uses the guaranteed fresh $company data:
         $goal = $company->monthly_goal ?? 0;
-        // NOTE: Changed goal progress to display 100% maximum for cleanliness
         $goalProgress = $goal > 0 ? round(($thisMonthRevenue / $goal) * 100, 1) : 0;
         $goalProgress = min($goalProgress, 100); // Caps displayed progress at 100%
 

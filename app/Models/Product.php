@@ -13,12 +13,31 @@ class Product extends Model
         'name',
         'price',
         'description',
-        'stock',
         'category',
         'company_id',
     ];
+
+    /**
+     * Get the company that owns the Product.
+     */
     public function company()
     {
         return $this->belongsTo(Company::class);
+    }
+
+    /**
+     * Get the inventory record associated with the Product.
+     */
+    public function inventory()
+    {
+        return $this->hasOne(Inventory::class);
+    }
+
+    /**
+     * Get all document lines that use this product.
+     */
+    public function documentLines()
+    {
+        return $this->hasMany(DocumentLine::class, 'product_id');
     }
 }

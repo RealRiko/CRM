@@ -1,18 +1,34 @@
 <?php
+
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model; 
-
 class Client extends Model
-// Definē Client klasi, kas paplašina Eloquent Model klasi, tādējādi mantojot visas ORM iespējas
 {
-    // PIEVIENOTS 'address' lauks masveida piešķiršanai
-    protected $fillable = ['name', 'email', 'phone', 'address', 'company_id'];
-    // $fillable norāda, kuri lauki ir masīvi pieejami "mass assignment"
-    // Tas palīdz aizsargāt pret masīvu datu neaizsargātu piešķiršanu (Mass Assignment Vulnerability)
-    
+    use HasFactory;
+
+    // $fillable satur masīvu ar laukiem, kurus var aizpildīt masīva vai formas datiem
+    // Tas ir drošības mehānisms pret masīva masveida piešķiršanas (mass assignment) uzbrukumiem.
+    protected $fillable = [
+        'company_id', 
+        'name',            
+        'email',            
+        'phone',            
+        'address',          
+        'city',            
+        'postal_code',     
+        'registration_number', 
+        'vat_number',       
+        'bank',             
+        'bank_account',     
+    ];
+
+    // Definējam attiecību ar Company modeli
+    // Tas nozīmē, ka katrs klients pieder kādai kompānijai
     public function company()
     {
+        // belongsTo nozīmē "katrs šis modelis pieder vienam Company modelim"
         return $this->belongsTo(Company::class);
     }
 }

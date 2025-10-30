@@ -2,9 +2,7 @@
 
 @section('content')
 
-{{-- === Custom Amber Color === --}}
 <style>
-    /* Amber / Sienna Accent */
     .text-amber-sienna { color: #CA8A04; }
     .border-amber-sienna { border-color: #CA8A04; }
     .bg-amber-sienna { background-color: #CA8A04; }
